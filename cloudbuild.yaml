@@ -1,0 +1,35 @@
+steps:
+- id: 'build image'
+  name: 'gcr.io/cloud-builders/docker'
+  args: 
+    - 'build'
+    - '-t'
+    - 'gcr.io/${PROJECT_ID}/web:$SHORT_SHA'
+    - '.'
+    - '-f'
+    - './Dockerfile'
+  timeout: 1000s
+- id: 'push to container registry'
+  name: 'gcr.io/cloud-builders/docker'
+  args: 
+    - 'push'
+    - 'gcr.io/${PROJECT_ID}/web:$SHORT_SHA'
+- id: 'deploy to gke'
+  name: 'gcr.io/cloud-builders/gcloud'
+  env:
+    - 'CLOUDSDK_COMPUTE_ZONE=${_CLOUDSDK_COMPUTE_ZONE}'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLOUDSDK_CONTAINER_CLUSTER}'
+    - 'KUBECONFIG=/.kube/config'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+          
+          gcloud container clusters get-credentials cicd-demo --project $PROJECT_ID --zone asia-south1-a
+          sed -i 's/<TAG>/$SHORT_SHA/' ./deploy.yaml
+          kubectl apply -f ./deploy.yaml
+timeout: 2000s
+
+# [END cloudbuild]
+options:
+ logging: CLOUD_LOGGING_ONLY
