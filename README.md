@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Docker
 
 Docker is a os level virtualization to package applications in form of containers.
@@ -73,4 +72,3 @@ Each stage has defined as steps `build, push, deploy`. We can involve multiple s
 =======
 # gke-cicd
 CICD  pipeline to deploy application into GKE using cloud builders
->>>>>>> 24e26b2 (Initial commit)
