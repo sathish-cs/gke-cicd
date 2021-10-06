@@ -1,0 +1,65 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: hello-world
+  name: hello-world
+  namespace: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-world
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: hello-world
+    spec:
+      serviceAccountName: app-sa
+      containers:
+      - image: gcr.io/cicd-324811/web:<TAG>
+        name: hello-world
+        resources: # restricts resources usage
+           requests:
+              cpu: "150m"
+           limits:
+              cpu: "200m"
+        securityContext: # immutable container which does'nt allow to write
+           readOnlyRootFilesystem: true
+status: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: hello-world
+  name: hello-world
+  namespace: app
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8000
+  selector:
+    app: hello-world
+    
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hello-world
+  namespace: app
+spec:
+  maxReplicas: 10
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: hello-world
+  targetCPUUtilizationPercentage: 50
